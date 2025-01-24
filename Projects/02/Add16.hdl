@@ -1,0 +1,31 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/2/Add16.hdl
+/**
+ * 16-bit adder: Adds two 16-bit two's complement values.
+ * The most significant carry bit is ignored.
+ */
+CHIP Add16 {
+    IN a[16], b[16];
+    OUT out[16];
+
+    PARTS:
+    //// Add16 using HalfAdder and FullAdder
+    HalfAdder(a=a[0] , b=b[0] , sum=out[0] , carry=cA0B0 );
+    FullAdder(a=a[1] , b=b[1] , c=cA0B0 , sum=out[1] , carry=cA1B1 );
+    FullAdder(a=a[2] , b=b[2] , c=cA1B1 , sum=out[2] , carry=cA2B2 );
+    FullAdder(a=a[3] , b=b[3] , c=cA2B2 , sum=out[3] , carry=cA3B3 );
+    FullAdder(a=a[4] , b=b[4] , c=cA3B3 , sum=out[4] , carry=cA4B4 );
+    FullAdder(a=a[5] , b=b[5] , c=cA4B4 , sum=out[5] , carry=cA5B5 );
+    FullAdder(a=a[6] , b=b[6] , c=cA5B5 , sum=out[6] , carry=cA6B6 );
+    FullAdder(a=a[7] , b=b[7] , c=cA6B6 , sum=out[7] , carry=cA7B7 );
+    FullAdder(a=a[8] , b=b[8] , c=cA7B7 , sum=out[8] , carry=cA8B8 );
+    FullAdder(a=a[9] , b=b[9] , c=cA8B8 , sum=out[9] , carry=cA9B9 );
+    FullAdder(a=a[10] , b=b[10] , c=cA9B9 , sum=out[10] , carry=cA10B10 );
+    FullAdder(a=a[11] , b=b[11] , c=cA10B10 , sum=out[11] , carry=cA11B11 );
+    FullAdder(a=a[12] , b=b[12] , c=cA11B11 , sum=out[12] , carry=cA12B12 );
+    FullAdder(a=a[13] , b=b[13] , c=cA12B12 , sum=out[13] , carry=cA13B13 );
+    FullAdder(a=a[14] , b=b[14] , c=cA13B13 , sum=out[14] , carry=cA14B14 );
+    FullAdder(a=a[15] , b=b[15] , c=cA14B14 , sum=out[15] , carry=cA15B15 );
+}

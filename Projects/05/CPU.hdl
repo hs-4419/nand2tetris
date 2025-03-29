@@ -1,0 +1,74 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/5/CPU.hdl
+/**
+ * The Hack Central Processing unit (CPU).
+ * Parses the binary code in the instruction input and executes it according to the
+ * Hack machine language specification. In the case of a C-instruction, computes the
+ * function specified by the instruction. If the instruction specifies to read a memory
+ * value, the inM input is expected to contain this value. If the instruction specifies
+ * to write a value to the memory, sets the outM output to this value, sets the addressM
+ * output to the target address, and asserts the writeM output (when writeM = 0, any
+ * value may appear in outM).
+ * If the reset input is 0, computes the address of the next instruction and sets the
+ * pc output to that value. If the reset input is 1, sets pc to 0.
+ * Note: The outM and writeM outputs are combinational: they are affected by the
+ * instruction's execution during the current cycle. The addressM and pc outputs are
+ * clocked: although they are affected by the instruction's execution, they commit to
+ * their new values only in the next cycle.
+ */
+CHIP CPU {
+
+    IN  inM[16],         // M value input  (M = contents of RAM[A])
+        instruction[16], // Instruction for execution
+        reset;           // Signals whether to re-start the current
+                         // program (reset==1) or continue executing
+                         // the current program (reset==0).
+
+    OUT outM[16],        // M value output
+        writeM,          // Write to M? 
+        addressM[15],    // Address in data memory (of M)
+        pc[15];          // address of next instruction
+
+    PARTS:
+	//// CPU
+
+    Mux16(a=instruction, b=ALUout, sel=instruction[15], out=selectingInstructinType);
+
+    Not(in=instruction[15] , out=NOTinstruction15 );
+    Or(a=NOTinstruction15 , b=instruction[5] , out=loadARegister );
+    ARegister(in=selectingInstructinType, load=loadARegister, out[0..14]=addressM, out=ARegisterValue);
+
+    Mux16(a=ARegisterValue, b=inM, sel=instruction[12], out=ALUip2);
+    
+    And(a=instruction[15], b=instruction[4], out=loadDRegister);
+    DRegister(in=ALUout, load=loadDRegister, out=DRegisterValue);
+
+    ALU(x=DRegisterValue, y=ALUip2, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=ALUout, out=outM, zr=zr, ng=ng);
+
+    And(a=instruction[15] , b=instruction[3] , out=writeM );
+    
+    //Calcuting to jump or not
+    Xor(a=zr, b=ng, out=zrXORng);
+    Not(in=zrXORng, out=zrXNORng);
+
+    Not(in=ng, out=NOTng);
+    Not(in=zr, out=NOTzr);
+    Or(a=zr, b=ng, out=zrORng);
+
+    Mux(a=false, b=zrXNORng, sel=instruction[0], out=M1);
+    Mux(a=zr, b=NOTng, sel=instruction[0], out=M2);
+    Mux(a=ng, b=NOTzr, sel=instruction[0], out=M3);
+    Mux(a=zrORng, b=true, sel=instruction[0], out=M4);
+
+    Mux(a=M1, b=M2, sel=instruction[1], out=M5);
+    Mux(a=M3, b=M4, sel=instruction[1], out=M6);
+
+    Mux(a=M5, b=M6, sel=instruction[2], out=jump);
+
+    //jumping only when it's a C instruction
+    And(a=instruction[15] , b=jump , out=loadPC );
+
+    PC(in=ARegisterValue, load=loadPC, inc=true, reset=reset, out[0..14]=pc);
+}
